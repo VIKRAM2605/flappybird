@@ -1,9 +1,8 @@
 import { checkCollision } from "./collisionCheck.js";
-import { gameRunning } from "./main.js";
+import { flappyBirdSpriteSheet, gameover, gameOver, gameRunning } from "./main.js";
+import { showPauseModal } from "./pause.js";
 import { drawBg, drawGround, drawPipes, drawScore, updateGround, updatePipes } from "./sceneCreation.js";
 
-export const flappyBirdSpriteSheet = new Image();
-flappyBirdSpriteSheet.src = 'assets/flappybirdassets.png';
 
 const canvas = document.getElementById('main_canvas');
 const ctx = canvas.getContext('2d');
@@ -18,16 +17,9 @@ const container = document.getElementById('game_container');
 
 
 let lastTime = 0;
+let animationId = null;
 
 const gravity = 500;
-
-export let player = {
-    x: 50,
-    y: 0,
-    velocity_y: 0,
-    h: 12,
-    w: 17,
-}
 
 export function resizeCanvas() {
 
@@ -52,13 +44,21 @@ export function resizeCanvas() {
 
 }
 
-export const characterAnimation = {
+export let player = {
+    x: (width / scale / 2) - 8,
+    y: 95,
+    velocity_y: 0,
+    h: 12,
+    w: 17,
+}
+
+const characterAnimation = {
     up: { x: 264, y: 64, w: 17, h: 12 },
     mid: { x: 264, y: 90, w: 17, h: 12 },
     down: { x: 223, y: 124, w: 17, h: 12 },
 }
 
-export function animateCharacter() {
+function animateCharacter() {
     let sprite;
     if (player.velocity_y < -50) {
         sprite = characterAnimation['up'];
@@ -89,54 +89,54 @@ export function animateCharacter() {
 export function gameLoop(currentTime) {
     ctx.clearRect(0, 0, width / scale, height / scale);
 
+    if (lastTime === 0) {
+        lastTime = currentTime;
+    }
+
     let delta = (currentTime - lastTime) / 1000;
     if (delta > 0.1) delta = 0.1
 
     lastTime = currentTime;
 
-    updatePipes(delta);
-
-    updateGround(delta);
-
     drawBg();
-
     drawPipes();
-
-    drawScore();
-
     drawGround();
 
     animateCharacter();
 
+    if (!gameover) {
+        drawScore();
+        showPauseModal();
+    }
+
+    if (gameRunning) {
+        updatePipes(delta);
+        updateGround(delta);
+
+        const groundY = height / scale - 50;
+
+        player.velocity_y += gravity * delta;
+        player.y += player.velocity_y * delta;
+
+        if (player.y + player.h >= groundY) {
+            player.y = groundY - player.h;
+            player.velocity_y = 0;
+        }
+
+        if (player.y < 0) {
+            player.y = 0;
+            player.velocity_y = 0;
+        }
+
+    }
     const collided = checkCollision(player);
 
-    const groundY = height / scale - 50;
-
-    player.velocity_y += gravity * delta;
-    player.y += player.velocity_y * delta;
-
-    if (player.y + player.h >= groundY) {
-        player.y = groundY - player.h;
-        player.velocity_y = 0;
+    if (collided) {
+        gameOver();
     }
 
-    if (player.y < 0) {
-        player.y = 0;
-        player.velocity_y = 0;
-    }
-
-
-    requestAnimationFrame(gameLoop);
+    animationId = requestAnimationFrame(gameLoop);
 }
-
-flappyBirdSpriteSheet.onload = () => {
-    requestAnimationFrame(gameLoop);
-}
-
-canvas.addEventListener('click', () => {
-    player.velocity_y = -150;
-})
-
 
 resizeCanvas();
 
