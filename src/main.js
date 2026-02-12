@@ -3,6 +3,7 @@ import { isClickOnPauseButton } from "./pause.js";
 import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
 import { drawBg, drawGround, resetPipes, updateGround } from "./sceneCreation.js";
 import { getScore, resetScore } from "./score.js";
+import { drawShowButton, isClickOnShopButton } from "./shop.js";
 
 export const flappyBirdSpriteSheet = new Image();
 flappyBirdSpriteSheet.src = 'assets/flappybirdassets.png';
@@ -137,9 +138,10 @@ export function startGameLoop(currentTime) {
 
     drawBg();
     drawGround();
-
     drawTitle();
+
     drawStartButton();
+    drawShowButton();
 
     animateFlappyOnStartPage(delta);
 
@@ -223,6 +225,9 @@ canvas.addEventListener('click', (e) => {
         gameRunning = true;
         toggleScene(gameRunning);
         return;
+    }
+    if (isClickOnShopButton(mousePos.x, mousePos.y) && !gameRunning) {
+        console.log("shop btn");
     }
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning) {
         gameover = false;
