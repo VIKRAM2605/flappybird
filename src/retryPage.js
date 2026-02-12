@@ -1,5 +1,5 @@
 import { height, scale, width } from "./character.js";
-import { flappyBirdSpriteSheet } from "./main.js";
+import { flappyBirdSpriteSheet, isBest } from "./main.js";
 import { getScore } from "./score.js";
 
 const canvas = document.getElementById("main_canvas");
@@ -101,6 +101,15 @@ export function drawBestScore() {
             num.x, num.y, num.w, num.h,
             currentX, (height / scale / 2) - (58 / 2) + (39), num.w, num.h
         );
+    }
+    console.log(isBest);
+
+    if (isBest) {
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            146, 245, 16, 7,
+            startX - 20, (height / scale / 2) - (58 / 2) + (39), 16, 7
+        )
     }
 }
 
