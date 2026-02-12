@@ -99,6 +99,7 @@ export function toggleScene(game_running) {
         resetScore();
         resetPipes();
         isGameOverProcessed = false;
+        firstTapped = false;
         startScreenAnimationId = requestAnimationFrame(startGameLoop);
     }
 }
