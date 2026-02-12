@@ -29,11 +29,36 @@ export function drawRetryPage() {
         flappyBirdSpriteSheet,
         146, 58, 113, 58,
         (width / scale / 2) - (113 / 2), (height / scale / 2) - (58 / 2), 113, 58
-    )
+    );
+
+    ctx.drawImage(
+        flappyBirdSpriteSheet,
+        146, 199, 94, 19,
+        (width / scale / 2) - 45, 80, 94, 19
+    );
+
     drawScore();
     drawBestScore();
     drawMedal();
+    drawMenuButton();
 };
+
+export function drawMenuButton() {
+    ctx.drawImage(
+        flappyBirdSpriteSheet,
+        246, 134, 40, 14,
+        (width / scale / 2) - (40 / 2), (height / scale / 2) - (14 / 2) + 50, 40, 14
+    );
+}
+
+export function isClickedOnOKButton(mouseX, mouseY) {
+    return (
+        mouseX >= (width / scale / 2) - (40 / 2) &&
+        mouseX <= (width / scale / 2) - (40 / 2) + 40 &&
+        mouseY >= (height / scale / 2) - (14 / 2) + 50 &&
+        mouseY <= (height / scale / 2) - (14 / 2) + 50 + 14
+    )
+}
 
 export function drawScore() {
     let number = getScore().toString();
