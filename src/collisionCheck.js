@@ -1,5 +1,6 @@
-import { height, player, scale } from "./character.js";
+import { height, player, scale, setCollidedRocket } from "./character.js";
 import { gameRunning } from "./main.js";
+import { drawBlast, rockets } from "./rocket.js";
 import { pipeGap, pipes, pipeSprite } from "./sceneCreation.js";
 
 const canvas = document.getElementById('main_canvas');
@@ -8,7 +9,6 @@ const canvas = document.getElementById('main_canvas');
 export function checkCollision(player) {
     const groundY = height / scale - 50;
     if (player.y + player.h >= groundY) {
-        console.log("hit the ground");
         return true;
     }
     for (let pipe of pipes) {
@@ -16,11 +16,18 @@ export function checkCollision(player) {
         const collidingWithBottomPipe = isCollidingWithBottomPipe(pipe);
 
         if (collidingWithTopPipe) {
-            console.log("collided with top pipe");
             return true;
         }
         if (collidingWithBottomPipe) {
-            console.log("collided with bottom pipe");
+            return true;
+        }
+    }
+    for (let rocket of rockets) {
+        const collidingWithRocket = isCollidingWithRocket(rocket);
+
+        if (collidingWithRocket) {
+            drawBlast(rocket);
+            setCollidedRocket(rocket)
             return true;
         }
     }
@@ -56,5 +63,22 @@ export function isCollidingWithBottomPipe(pipe) {
         player.x < pipeRight &&
         player.y + player.h > pipeTop &&
         player.y < pipeBottom
+    )
+}
+
+export function isCollidingWithRocket(rocket) {
+
+    const padding = 3
+
+    const rocketLeft = rocket.x + padding;
+    const rocketRight = rocket.x + rocket.w - padding;
+    const rocketTop = rocket.y + padding;
+    const rocketBottom = rocket.y + rocket.h - padding;
+
+    return (
+        player.x + player.w - padding > rocketLeft &&
+        player.x + padding < rocketRight &&
+        player.y + player.h - padding > rocketTop &&
+        player.y + padding < rocketBottom
     )
 }

@@ -1,12 +1,19 @@
-import { gameLoop, player, resetPlayer, scale, stopGameAnimation, width } from "./character.js";
+import { gameLoop, player, resetCollidedRocket, resetPlayer, scale, stopGameAnimation, width } from "./character.js";
 import { isClickOnPauseButton } from "./pause.js";
 import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
+import { resetRocketSpawn } from "./rocket.js";
 import { drawBg, drawGround, resetPipes, updateGround } from "./sceneCreation.js";
 import { getScore, resetScore } from "./score.js";
 import { drawShowButton, isClickOnShopButton } from "./shop.js";
 
 export const flappyBirdSpriteSheet = new Image();
 flappyBirdSpriteSheet.src = 'assets/flappybirdassets.png';
+
+export const rocketSprite = new Image();
+rocketSprite.src = 'assets/missile1-Photoroom.png';
+
+export const blastSprite = new Image();
+blastSprite.src = 'assets/blast-Photoroom.png';
 
 export let firstTapped = false;
 export let isBest = false;
@@ -101,6 +108,8 @@ export function toggleScene(game_running) {
         resetPlayer();
         resetScore();
         resetPipes();
+        resetRocketSpawn();
+        resetCollidedRocket();
         isGameOverProcessed = false;
         firstTapped = false;
         startScreenAnimationId = requestAnimationFrame(startGameLoop);
@@ -226,13 +235,13 @@ canvas.addEventListener('click', (e) => {
         toggleScene(gameRunning);
         return;
     }
-    if (isClickOnShopButton(mousePos.x, mousePos.y) && !gameRunning) {
-        console.log("shop btn");
-    }
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning) {
         gameover = false;
         toggleScene(gameRunning);
         return;
+    }
+    if (isClickOnShopButton(mousePos.x, mousePos.y) && !gameRunning) {
+        console.log("shop btn");
     }
     if (gameRunning) {
         if (!firstTapped) {
