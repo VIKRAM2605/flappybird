@@ -4,7 +4,8 @@ import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
 import { resetRocketSpawn } from "./rocket.js";
 import { drawBg, drawGround, resetPipes, updateGround } from "./sceneCreation.js";
 import { getScore, resetScore } from "./score.js";
-import { drawShowButton, isClickOnShopButton } from "./shop.js";
+import { drawShopPage, drawShowButton, isClickOnShopButton, isClickOnShopCloseButton, isShowShopPage, showShopPage, toggleShowPageVisibilty } from "./shop.js";
+import { addCurrency } from "./wallet.js";
 
 export const flappyBirdSpriteSheet = new Image();
 flappyBirdSpriteSheet.src = 'assets/flappybirdassets.png';
@@ -112,6 +113,7 @@ export function toggleScene(game_running) {
         resetCollidedRocket();
         isGameOverProcessed = false;
         firstTapped = false;
+        gameRunning = false
         startScreenAnimationId = requestAnimationFrame(startGameLoop);
     }
 }
@@ -132,6 +134,9 @@ export function gameOver() {
     const bestScore = savedBest ? Math.max(currentScore, parseInt(savedBest)) : currentScore;
 
     localStorage.setItem("best", bestScore.toString());
+
+    addCurrency(currentScore);
+
     isGameOverProcessed = true;
     drawRetryPage();
 }
@@ -147,12 +152,17 @@ export function startGameLoop(currentTime) {
 
     drawBg();
     drawGround();
-    drawTitle();
 
-    drawStartButton();
-    drawShowButton();
+    if (isShowShopPage) {
+        showShopPage();
+    } else {
+        drawTitle();
 
-    animateFlappyOnStartPage(delta);
+        drawStartButton();
+        drawShowButton();
+
+        animateFlappyOnStartPage(delta);
+    }
 
     startScreenAnimationId = requestAnimationFrame(startGameLoop)
 }
@@ -230,18 +240,24 @@ canvas.addEventListener('click', (e) => {
         gameRunning = !gameRunning;
         return;
     }
-    if (isClickOnStartButton(mousePos.x, mousePos.y) && !gameRunning) {
+    if (isClickOnShopButton(mousePos.x, mousePos.y) && !gameRunning && !isShowShopPage && !gameover) {
+        console.log("shop btn");
+        toggleShowPageVisibilty();
+        return;
+    }
+    if (isClickOnStartButton(mousePos.x, mousePos.y) && !gameRunning && !isShowShopPage) {
         gameRunning = true;
         toggleScene(gameRunning);
+        return;
+    }
+    if (isClickOnShopCloseButton(mousePos.x, mousePos.y) && isShowShopPage) {
+        toggleShowPageVisibilty();
         return;
     }
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning) {
         gameover = false;
         toggleScene(gameRunning);
         return;
-    }
-    if (isClickOnShopButton(mousePos.x, mousePos.y) && !gameRunning) {
-        console.log("shop btn");
     }
     if (gameRunning) {
         if (!firstTapped) {
