@@ -3,9 +3,6 @@ import { gameRunning } from "./main.js";
 import { drawBlast, rockets } from "./rocket.js";
 import { pipeGap, pipes, pipeSprite } from "./sceneCreation.js";
 
-const canvas = document.getElementById('main_canvas');
-
-
 export function checkCollision(player) {
     const groundY = height / scale - 50;
     if (player.y + player.h >= groundY) {
@@ -31,9 +28,7 @@ export function checkCollision(player) {
             return true;
         }
     }
-
     return false;
-
 }
 
 export function isCollidingWithTopPipe(pipe) {
@@ -48,7 +43,7 @@ export function isCollidingWithTopPipe(pipe) {
         player.x < pipeRight &&
         player.y + player.h > pipeTop &&
         player.y < pipeBottom
-    )
+    );
 }
 
 export function isCollidingWithBottomPipe(pipe) {
@@ -63,7 +58,7 @@ export function isCollidingWithBottomPipe(pipe) {
         player.x < pipeRight &&
         player.y + player.h > pipeTop &&
         player.y < pipeBottom
-    )
+    );
 }
 
 export function isCollidingWithRocket(rocket) {
@@ -80,5 +75,5 @@ export function isCollidingWithRocket(rocket) {
         player.x + padding < rocketRight &&
         player.y + player.h - padding > rocketTop &&
         player.y + padding < rocketBottom
-    )
+    );
 }

@@ -1,5 +1,6 @@
 import { dpr, height, player, scale, width } from "./character.js";
 import { flappyBirdSpriteSheet } from "./main.js";
+import { rockets } from "./rocket.js";
 import { addPoint, getScore } from "./score.js";
 
 const canvas = document.getElementById('main_canvas');
@@ -35,7 +36,7 @@ const pipeInterval = 2;
 const pipeSpeed = 100;
 export const pipeGap = 60;
 
-export function resetPipes(){
+export function resetPipes() {
     pipes = [];
 }
 
@@ -74,7 +75,7 @@ export function drawGround() {
 export function updatePipes(delta) {
     pipeTimer += delta;
 
-    if (pipeTimer >= pipeInterval) {
+    if (pipeTimer >= pipeInterval && rockets.length === 0) {
         pipeTimer = 0;
 
         const groundY = (height / scale) - 50;
@@ -162,4 +163,4 @@ export function drawPipes() {
         )
     })
 
-}
+};
