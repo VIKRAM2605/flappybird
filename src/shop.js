@@ -1,6 +1,6 @@
 import { height, scale, width } from "./character.js";
 import { flappyBirdSpriteSheet, gameRunning } from "./main.js";
-import { getCurrency } from "./wallet.js";
+import { deductCurrency, getCurrency } from "./wallet.js";
 
 const canvas = document.getElementById("main_canvas");
 const ctx = canvas.getContext('2d');
@@ -11,6 +11,8 @@ export let isShowShopPage = false;
 let scrollOffset = 0;
 const shopContentHeight = 98 - 30;
 const itemHeight = 30;
+
+const buyButtonLoc = {};
 
 const currencySprite = {
     '0': { x: 287, y: 74, w: 6, h: 7 },
@@ -42,7 +44,7 @@ const items = {
         sprite: { x: 433, y: 102, w: 22, h: 22 },
         title: "Shield",
         price: 10,
-        descp: "You can take one hit ans still be alive"
+        descp: "You can take one hit and still be alive"
     },
     Rocket: {
         sprite: { x: 408, y: 144, w: 22, h: 22 },
@@ -56,6 +58,31 @@ const items = {
         price: 10,
         descp: " Makes you Invisible for 5s"
     },
+}
+
+export function storeBoughtItemsInLocalStorage() {
+    for (let item in boughtItems) {
+        const quantity = boughtItems[item];
+        localStorage.setItem(item, quantity);
+    }
+};
+
+export function setBoughtItemsFromLocalToCode() {
+    for (let item in items) {
+        if (localStorage.getItem(item)) {
+            boughtItems[item] = parseInt(localStorage.getItem(item));
+        }
+    }
+}
+
+export function deductBoughtItems(item) {
+    boughtItems[item]--;
+    storeBoughtItemsInLocalStorage();
+}
+
+export function creditBoughtItems(item) {
+    boughtItems[item]++;
+    storeBoughtItemsInLocalStorage();
 }
 
 export function drawShowButton() {
@@ -198,6 +225,20 @@ export function drawShopPage() {
             shopX + 5, currentY + 4, 18, 18
         );
 
+        //quantity (x)
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            474, 141, 5, 6,
+            shopX + 6, currentY + 5.5 + 18, 3, 4
+        );
+
+        //qunatity
+        if (boughtItems[powerUpName]) {
+            drawPriceFont(boughtItems[powerUpName].toString(), shopX + 10, currentY + 5.2 + 18, 0.6);
+        } else {
+            drawPriceFont("0", shopX + 10, currentY + 5.2 + 18, 0.6);
+        }
+
         ctx.imageSmoothingEnabled = false;
 
         ctx.font = "8px 'Pixelify Sans'";
@@ -228,6 +269,8 @@ export function drawShopPage() {
             345, 133, 40, 14,
             shopX + 113 - 40 * 0.6 - 7, buttonY - 2, 40 * 0.6, 14 * 0.6
         );
+
+        buyButtonLoc[powerUpName] = { x: shopX + 113 - 40 * 0.6 - 7, y: buttonY - 2, w: 40 * 0.6, h: 14 * 0.6 };
 
         currentY += (baseHeight + extraHeight);
     }
@@ -284,6 +327,42 @@ export function drawCurrency() {
 
 export function isClickOnBuyButton(mouseX, mouseY) {
 
+    const shopX = (width / scale / 2) - (113 / 2);
+    const shopY = (height / scale / 2) - (98 / 2);
+
+    const clipLeft = shopX + 2;
+    const clipRight = shopX + 2 + (113 - 4);
+
+    const clipTop = shopY + 20;
+    const clipBottom = shopY + 20 + shopContentHeight;
+
+    if (mouseX < clipLeft || mouseX > clipRight || mouseY < clipTop || mouseY > clipBottom) {
+        return false;
+    }
+
+    for (let buyButton in buyButtonLoc) {
+        const button = buyButtonLoc[buyButton];
+
+        const check = (
+            mouseX >= button.x &&
+            mouseX <= button.x + button.w &&
+            mouseY >= button.y &&
+            mouseY <= button.y + button.h
+        )
+        if (check) {
+            if (boughtItems[buyButton]) {
+                creditBoughtItems(buyButton);
+                deductCurrency(items[buyButton].price);
+            } else {
+                boughtItems[buyButton] = 1;
+                deductCurrency(items[buyButton].price);
+                storeBoughtItemsInLocalStorage();
+            }
+            console.log(boughtItems);
+            return true;
+        }
+    }
+    return false;
 }
 
 canvas.addEventListener("wheel", (e) => {

@@ -4,7 +4,7 @@ import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
 import { resetRocketSpawn } from "./rocket.js";
 import { drawBg, drawGround, resetPipes, updateGround } from "./sceneCreation.js";
 import { getScore, resetScore } from "./score.js";
-import { drawShowButton, isClickOnShopButton, isClickOnShopCloseButton, isShowShopPage, showShopPage, toggleShowPageVisibilty } from "./shop.js";
+import { drawShowButton, isClickOnBuyButton, isClickOnShopButton, isClickOnShopCloseButton, isShowShopPage, setBoughtItemsFromLocalToCode, showShopPage, toggleShowPageVisibilty } from "./shop.js";
 import { addCurrency } from "./wallet.js";
 
 export const flappyBirdSpriteSheet = new Image();
@@ -218,6 +218,8 @@ export function startGameLoopWaitingForFirstTap(currentTime) {
 
 toggleScene(gameRunning);
 
+setBoughtItemsFromLocalToCode();
+
 export function getMouse(e) {
     const rect = canvas.getBoundingClientRect();
 
@@ -265,6 +267,9 @@ canvas.addEventListener('click', (e) => {
         toggleShowPageVisibilty();
         return;
     }
+    if (isClickOnBuyButton(mousePos.x, mousePos.y) && isShowShopPage) {
+        return;
+    }
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning) {
         gameover = false;
         toggleScene(gameRunning);
@@ -278,13 +283,6 @@ canvas.addEventListener('click', (e) => {
         player.velocity_y = -150;
     }
 })
-
-// canvas.addEventListener("wheel", (e) => {
-//     if (isShowShopPage) {
-//         e.preventDefault();
-//         handleShopScroll(e.deltaY);
-//     }
-// })
 
 canvas.addEventListener("keydown", (e) => {
     if (e.key === ' ' && gameRunning) {
