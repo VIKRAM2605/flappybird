@@ -1,4 +1,5 @@
 import { gameLoop, player, resetCollidedRocket, resetPlayer, scale, stopGameAnimation, width } from "./character.js";
+import { drawLoadoutButton, isClickOnLoadoutButton, isClickOnLoadoutCloseButton, isShowLoadout, showLoadoutPage, toggleLoadoutPage } from "./loadout.js";
 import { isClickOnPauseButton } from "./pause.js";
 import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
 import { resetRocketSpawn } from "./rocket.js";
@@ -166,11 +167,16 @@ export function startGameLoop(currentTime) {
 
     if (isShowShopPage) {
         showShopPage();
-    } else {
+    }
+    else if (isShowLoadout) {
+        showLoadoutPage();
+    }
+    else {
         drawTitle();
 
         drawStartButton();
         drawShowButton();
+        drawLoadoutButton();
 
         animateFlappyOnStartPage(delta);
     }
@@ -258,6 +264,11 @@ canvas.addEventListener('click', (e) => {
         toggleShowPageVisibilty();
         return;
     }
+    if (isClickOnLoadoutButton(mousePos.x, mousePos.y) && !isShowLoadout) {
+        console.log("loadout btn");
+        toggleLoadoutPage();
+        return;
+    }
     if (isClickOnStartButton(mousePos.x, mousePos.y) && !gameRunning && !isShowShopPage) {
         gameRunning = true;
         toggleScene(gameRunning);
@@ -267,9 +278,14 @@ canvas.addEventListener('click', (e) => {
         toggleShowPageVisibilty();
         return;
     }
+    if (isClickOnLoadoutCloseButton(mousePos.x, mousePos.y) && isShowLoadout) {
+        toggleLoadoutPage();
+        return;
+    }
     if (isClickOnBuyButton(mousePos.x, mousePos.y) && isShowShopPage) {
         return;
     }
+
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning) {
         gameover = false;
         toggleScene(gameRunning);
