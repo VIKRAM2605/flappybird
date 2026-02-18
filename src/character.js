@@ -351,10 +351,6 @@ export function gameLoop(currentTime) {
         showPauseModal();
     }
 
-    if (collidedRocket) {
-        drawRocket(collidedRocket);
-    }
-
     if (gameRunning) {
         if (player.isGravity) {
             gravity = 200;
