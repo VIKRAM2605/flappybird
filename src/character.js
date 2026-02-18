@@ -423,7 +423,7 @@ export function isClickOnInGameSlot(mouseX, mouseY) {
         );
         if (check) {
             const canDeduct = deductBoughtItems(skill.name);
-            console.log(skill.name)
+            console.log(skill.name === "Gravity");
             if (skill.name === "Shield" && canDeduct) player.isShield = true;
             if (skill.name === "Invisibility" && canDeduct) {
                 if (player.isInvisibility) {
