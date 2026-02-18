@@ -1,4 +1,4 @@
-import { gameLoop, player, resetCollidedRocket, resetPlayer, scale, stopGameAnimation, width } from "./character.js";
+import { gameLoop, isClickOnInGameSlot, player, resetCollidedRocket, resetPlayer, scale, stopGameAnimation, upForce, width } from "./character.js";
 import { drawLoadoutButton, isClickOnDeleteButton, isClickOnLoadoutButton, isClickOnLoadoutCloseButton, isClickOnTopOfSkill, isShowLoadout, showLoadoutPage, toggleLoadoutPage } from "./loadout.js";
 import { isClickOnPauseButton } from "./pause.js";
 import { drawRetryPage, isClickedOnOKButton } from "./retryPage.js";
@@ -287,10 +287,13 @@ canvas.addEventListener('click', (e) => {
     if (isClickOnTopOfSkill(mousePos.x, mousePos.y) && isShowLoadout && !isShowShopPage && !gameRunning && !gameover) {
         return;
     }
-    if(isClickOnDeleteButton(mousePos.x,mousePos.y) && isShowLoadout && !isShowShopPage && !gameRunning && !gameover){
+    if (isClickOnDeleteButton(mousePos.x, mousePos.y) && isShowLoadout && !isShowShopPage && !gameRunning && !gameover) {
         return;
     }
     if (isClickOnBuyButton(mousePos.x, mousePos.y) && isShowShopPage && !isShowLoadout && !gameRunning && !gameover) {
+        return;
+    }
+    if (isClickOnInGameSlot(mousePos.x, mousePos.y) && gameRunning && !gameover && !isShowLoadout && !isShowShopPage) {
         return;
     }
     if (isClickedOnOKButton(mousePos.x, mousePos.y) && !gameRunning && !isShowShopPage && !isShowLoadout) {
@@ -303,7 +306,7 @@ canvas.addEventListener('click', (e) => {
             firstTapped = true;
             toggleScene(gameRunning)
         }
-        player.velocity_y = -150;
+        player.velocity_y = -upForce;
     }
 })
 
@@ -313,6 +316,6 @@ canvas.addEventListener("keydown", (e) => {
             firstTapped = true;
             toggleScene(gameRunning);
         }
-        player.velocity_y = -150;
+        player.velocity_y = -upForce;
     }
 })

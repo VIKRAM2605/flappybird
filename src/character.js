@@ -1,8 +1,10 @@
-import { checkCollision } from "./collisionCheck.js";
+import { checkCollision, resetTimer, stopCheckTimer } from "./collisionCheck.js";
 import { flappyBirdSpriteSheet, gameover, gameOver, gameRunning } from "./main.js";
 import { showPauseModal } from "./pause.js";
 import { checkRocketSpawn, drawRocket, rockets, spawnRocket, updateRocket } from "./rocket.js";
 import { drawBg, drawGround, drawPipes, drawScore, resetPipes, updateGround, updatePipes } from "./sceneCreation.js";
+import { boughtItems, deductBoughtItems, drawPriceFont } from "./shop.js";
+import { slot } from "./slot.js";
 
 const canvas = document.getElementById('main_canvas');
 const ctx = canvas.getContext('2d');
@@ -19,7 +21,10 @@ let lastTime = 0;
 let animationId = null;
 let collidedRocket = null;
 
+let skillInGameLoc = [null, null, null];
+
 const gravity = 500;
+export let upForce = 150;
 
 export function stopGameAnimation() {
     if (animationId) {
@@ -57,7 +62,16 @@ export let player = {
     velocity_y: 0,
     h: 12,
     w: 17,
+    isShield: false,
+    isInvincible: false,
+    isGravity: false,
+    isInvisibility: false,
 }
+
+let shieldTimer = 0;
+let invincibleTimer = 0;
+let gravityTimer = 0;
+let InvisibilityTimer = 0;
 
 const characterAnimation = {
     up: { x: 264, y: 64, w: 17, h: 12 },
@@ -65,10 +79,31 @@ const characterAnimation = {
     down: { x: 223, y: 124, w: 17, h: 12 },
 }
 
+const characterAnimationWithShield = {
+    up: { x: 449, y: 207, w: 22, h: 22 },
+    mid: { x: 450, y: 238, w: 22, h: 22 },
+    down: { x: 450, y: 268, w: 22, h: 22 },
+}
+
+const characterAnimationWithInvincible = {
+    up: { x: 484, y: 61, w: 17, h: 12 },
+    mid: { x: 485, y: 88, w: 17, h: 12 },
+    down: { x: 485, y: 119, w: 17, h: 12 },
+}
+
 export function resetPlayer() {
     player.x = (width / scale / 2) - 8;
     player.y = 95;
     player.velocity_y = 0;
+    player.isShield = false;
+    player.isInvincible = false;
+    player.isGravity = false;
+    player.isInvisibility = false;
+    shieldTimer = 0;
+    invincibleTimer = 0;
+    InvisibilityTimer = 0;
+    gravityTimer = 0;
+    resetTimer();
 }
 
 export function setCollidedRocket(rocket) {
@@ -119,6 +154,74 @@ function animateCharacter() {
     }
 }
 
+function animateCharacterWithShield() {
+    let sprite;
+    if (player.velocity_y < -50) {
+        sprite = characterAnimationWithShield["up"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(-10 * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    }
+    else if (player.velocity_y > 50) {
+        sprite = characterAnimationWithShield["mid"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(10 * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    } else {
+        sprite = characterAnimationWithShield["down"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(-10 * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    }
+}
+
+function drawSlotsInGame() {
+    let currentY = 40;
+    for (let i = 0; i < slot.length; i++) {
+        const skill = slot[i];
+        if (skill === null) continue;
+
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            skill.x, skill.y, skill.w, skill.h,
+            4, currentY, skill.w, skill.h
+        );
+
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            474, 141, 5, 6,
+            4, currentY + 24, 5, 6
+        );
+        let quantity = boughtItems[skill.name.replace("Slot", "")];
+        if (!quantity) {
+            quantity = 0;
+        }
+        drawPriceFont(quantity.toString(), 10, currentY + 24.5);
+
+        skillInGameLoc[i] = { x: 4, y: currentY, w: skill.w, h: skill.h, name: skill.name.replace("Slot", "") };
+
+        currentY += 40;
+    }
+}
+
 export function gameLoop(currentTime) {
     ctx.clearRect(0, 0, width / scale, height / scale);
 
@@ -136,7 +239,12 @@ export function gameLoop(currentTime) {
 
     drawGround();
 
-    animateCharacter();
+    if (player.isShield) {
+        animateCharacterWithShield();
+    }
+    else {
+        animateCharacter();
+    }
 
     if (!gameover) {
         drawScore();
@@ -151,6 +259,7 @@ export function gameLoop(currentTime) {
         updatePipes(delta);
         updateGround(delta);
         updateRocket(delta);
+        drawSlotsInGame();
 
         const rocket = checkRocketSpawn();
 
@@ -174,7 +283,7 @@ export function gameLoop(currentTime) {
         }
 
     }
-    const collided = checkCollision(player);
+    const collided = checkCollision(delta);
 
     if (collided) {
         gameOver();
@@ -186,3 +295,22 @@ export function gameLoop(currentTime) {
 resizeCanvas();
 
 window.addEventListener('resize', resizeCanvas);
+
+export function isClickOnInGameSlot(mouseX, mouseY) {
+    for (let i = 0; i < skillInGameLoc.length; i++) {
+        if (skillInGameLoc[i] === null) continue;
+        const skill = skillInGameLoc[i];
+        const check = (
+            mouseX >= skill.x &&
+            mouseX <= skill.x + skill.w &&
+            mouseY >= skill.y &&
+            mouseY <= skill.y + skill.h
+        );
+        if (check) {
+            const canDeduct = deductBoughtItems(skill.name);
+            if (skill.name === "Shield" && canDeduct) player.isShield = true;
+            return true;
+        }
+    }
+    return false;
+}
