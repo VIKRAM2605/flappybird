@@ -1,3 +1,4 @@
+import { playDieSound, playFlapSound } from "./audio.js";
 import { gameLoop, isClickOnInGameSlot, player, resetCollidedRocket, resetPlayer, scale, stopGameAnimation, upForce, width } from "./character.js";
 import { drawLoadoutButton, isClickOnDeleteButton, isClickOnLoadoutButton, isClickOnLoadoutCloseButton, isClickOnTopOfSkill, isShowLoadout, showLoadoutPage, toggleLoadoutPage } from "./loadout.js";
 import { isClickOnPauseButton } from "./pause.js";
@@ -149,6 +150,10 @@ export function gameOver() {
     localStorage.setItem("best", bestScore.toString());
 
     addCurrency(currentScore);
+
+    setTimeout(()=>{
+        playDieSound();
+    },500)
 
     isGameOverProcessed = true;
     drawRetryPage();
@@ -307,6 +312,7 @@ canvas.addEventListener('click', (e) => {
             toggleScene(gameRunning)
         }
         player.velocity_y = -upForce;
+        playFlapSound();
     }
 })
 
@@ -317,5 +323,6 @@ canvas.addEventListener("keydown", (e) => {
             toggleScene(gameRunning);
         }
         player.velocity_y = -upForce;
+        playFlapSound();
     }
 })

@@ -1,3 +1,4 @@
+import { playHitSound, playSwooshSound } from "./audio.js";
 import { checkCollision, resetTimer, stopCheckTimer } from "./collisionCheck.js";
 import { flappyBirdSpriteSheet, gameover, gameOver, gameRunning } from "./main.js";
 import { showPauseModal } from "./pause.js";
@@ -23,7 +24,7 @@ let collidedRocket = null;
 
 let skillInGameLoc = [null, null, null];
 
-const gravity = 500;
+let gravity = 450;
 export let upForce = 150;
 
 export function stopGameAnimation() {
@@ -66,12 +67,13 @@ export let player = {
     isInvincible: false,
     isGravity: false,
     isInvisibility: false,
+    isRocket: false,
 }
 
 let shieldTimer = 0;
 let invincibleTimer = 0;
 let gravityTimer = 0;
-let InvisibilityTimer = 0;
+let invisibilityTimer = 0;
 
 const characterAnimation = {
     up: { x: 264, y: 64, w: 17, h: 12 },
@@ -99,9 +101,10 @@ export function resetPlayer() {
     player.isInvincible = false;
     player.isGravity = false;
     player.isInvisibility = false;
+    player.isRocket = false;
     shieldTimer = 0;
     invincibleTimer = 0;
-    InvisibilityTimer = 0;
+    invisibilityTimer = 0;
     gravityTimer = 0;
     resetTimer();
 }
@@ -116,11 +119,16 @@ export function resetCollidedRocket(rocket) {
 
 function animateCharacter() {
     let sprite;
+    let rotationDegree = player.velocity_y * 0.10;
+
+    if (rotationDegree < -25) rotationDegree = -25;
+    if (rotationDegree > 30) rotationDegree = 30;
+
     if (player.velocity_y < -50) {
         sprite = characterAnimation['up'];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(-10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -132,7 +140,7 @@ function animateCharacter() {
         sprite = characterAnimation['mid'];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -144,7 +152,7 @@ function animateCharacter() {
         sprite = characterAnimation['down'];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(-10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -152,15 +160,21 @@ function animateCharacter() {
         );
         ctx.restore();
     }
+
 }
 
 function animateCharacterWithShield() {
     let sprite;
+    let rotationDegree = player.velocity_y * 0.10;
+
+    if (rotationDegree < -25) rotationDegree = -25;
+    if (rotationDegree > 30) rotationDegree = 30;
+
     if (player.velocity_y < -50) {
         sprite = characterAnimationWithShield["up"];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(-10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -172,7 +186,7 @@ function animateCharacterWithShield() {
         sprite = characterAnimationWithShield["mid"];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -183,7 +197,7 @@ function animateCharacterWithShield() {
         sprite = characterAnimationWithShield["down"];
         ctx.save();
         ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
-        ctx.rotate(-10 * Math.PI / 180);
+        ctx.rotate(rotationDegree * Math.PI / 180);
         ctx.drawImage(
             flappyBirdSpriteSheet,
             sprite.x, sprite.y, sprite.w, sprite.h,
@@ -191,6 +205,70 @@ function animateCharacterWithShield() {
         );
         ctx.restore();
     }
+}
+
+function animateCharacterWithInvinsible() {
+    let sprite;
+
+    let rotationDegree = player.velocity_y * 0.10;
+
+    if (rotationDegree < -25) rotationDegree = -25;
+    if (rotationDegree > 30) rotationDegree = 30;
+
+    if (player.velocity_y < -50) {
+        sprite = characterAnimationWithInvincible["up"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(rotationDegree * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    }
+    else if (player.velocity_y > 50) {
+        sprite = characterAnimationWithInvincible["mid"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(rotationDegree * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    } else {
+        sprite = characterAnimationWithInvincible["down"];
+        ctx.save();
+        ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+        ctx.rotate(rotationDegree * Math.PI / 180);
+        ctx.drawImage(
+            flappyBirdSpriteSheet,
+            sprite.x, sprite.y, sprite.w, sprite.h,
+            -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+        );
+        ctx.restore();
+    }
+}
+
+function animateCharacterAfterDeath() {
+    let sprite = characterAnimation["mid"];
+    let rotationDegree = player.velocity_y * 0.10;
+    if (rotationDegree < -25) rotationDegree = -25;
+    if (rotationDegree > 90) rotationDegree = 90;
+
+    ctx.save();
+    ctx.translate(player.x + sprite.w / 2, player.y + sprite.h / 2);
+    ctx.rotate(rotationDegree * Math.PI / 180);
+
+    ctx.drawImage(
+        flappyBirdSpriteSheet,
+        sprite.x, sprite.y, sprite.w, sprite.h,
+        -sprite.w / 2, -sprite.h / 2, sprite.w, sprite.h
+    );
+
+    ctx.restore();
 }
 
 function drawSlotsInGame() {
@@ -239,8 +317,30 @@ export function gameLoop(currentTime) {
 
     drawGround();
 
-    if (player.isShield) {
+    if (gameover) {
+        animateCharacterAfterDeath();
+        player.velocity_y += gravity * delta * 0.5;
+        player.y += player.velocity_y * delta;
+    }
+
+    else if (player.isShield) {
         animateCharacterWithShield();
+    }
+    else if (player.isInvisibility) {
+        invisibilityTimer += delta;
+        if (invisibilityTimer >= 3) {
+            player.isInvisibility = false;
+            invisibilityTimer = 0;
+        }
+    }
+    else if (player.isInvincible) {
+
+        animateCharacterWithInvinsible();
+        invincibleTimer += delta;
+        if (invincibleTimer >= 5) {
+            player.isInvincible = false;
+            invincibleTimer = 0;
+        }
     }
     else {
         animateCharacter();
@@ -256,6 +356,17 @@ export function gameLoop(currentTime) {
     }
 
     if (gameRunning) {
+        if (player.isGravity) {
+            gravity = 200;
+            upForce = 50;
+            gravityTimer += delta;
+            if (gravityTimer >= 3) {
+                player.isGravity = false;
+                gravityTimer = 0;
+                gravity = 450;
+                upForce = 150;
+            }
+        }
         updatePipes(delta);
         updateGround(delta);
         updateRocket(delta);
@@ -286,7 +397,14 @@ export function gameLoop(currentTime) {
     const collided = checkCollision(delta);
 
     if (collided) {
+        if (!gameover) {
+            playHitSound();
+            setTimeout(() => {
+                playSwooshSound();
+            }, 100);
+        }
         gameOver();
+
     }
 
     animationId = requestAnimationFrame(gameLoop);
@@ -300,6 +418,7 @@ export function isClickOnInGameSlot(mouseX, mouseY) {
     for (let i = 0; i < skillInGameLoc.length; i++) {
         if (skillInGameLoc[i] === null) continue;
         const skill = skillInGameLoc[i];
+        console.log(skill);
         const check = (
             mouseX >= skill.x &&
             mouseX <= skill.x + skill.w &&
@@ -308,7 +427,30 @@ export function isClickOnInGameSlot(mouseX, mouseY) {
         );
         if (check) {
             const canDeduct = deductBoughtItems(skill.name);
+            console.log(skill.name)
             if (skill.name === "Shield" && canDeduct) player.isShield = true;
+            if (skill.name === "Invisibility" && canDeduct) {
+                if (player.isInvisibility) {
+                    invisibilityTimer -= 3;
+                    return;
+                }
+                player.isInvisibility = true;
+            }
+            if (skill.name === "Gravity" && canDeduct) {
+                if (player.isGravity) {
+                    gravityTimer -= 3;
+                    return;
+                }
+                player.isGravity = true;
+            }
+            if (skill.name === "Invincible" && canDeduct) {
+                if (player.isInvincible) {
+                    invincibleTimer -= 5;
+                    return;
+                }
+                player.isInvincible = true;
+            }
+            if (skill.name === "Rocket" && canDeduct) player.isRocket = true;
             return true;
         }
     }

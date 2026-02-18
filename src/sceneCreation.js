@@ -1,3 +1,4 @@
+import { playSwooshSound } from "./audio.js";
 import { dpr, height, player, scale, width } from "./character.js";
 import { flappyBirdSpriteSheet } from "./main.js";
 import { rockets } from "./rocket.js";
@@ -106,7 +107,11 @@ export function updatePipes(delta) {
     pipes.forEach(pipe => {
         if (!pipe.scored && pipe.x + pipeSprite.upward.w / 2 < player.x) {
             pipe.scored = true;
-            addPoint();
+            if (player.isInvisibility) {
+                addPoint(5);
+            } else {
+                addPoint();
+            }
         }
     })
 
